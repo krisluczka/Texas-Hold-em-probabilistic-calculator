@@ -254,7 +254,7 @@ void game() {
     for ( uint_fast8_t i( 0 ); i < 2; ++i ) {
         cout << " Hole card >> "; cin >> input;
 
-        if ( input[0] == 'X' || input[1] == 'x' ) goto finish;
+        if ( input[0] == 'X' || input[0] == 'x' ) return;
 
         cards.push_back( { string_to_rank( input ), string_to_suit( input ) } );
     }
@@ -267,7 +267,7 @@ void game() {
     for ( uint_fast8_t i( 0 ); i < 3; ++i ) {
         cout << " Community card >> "; cin >> input;
 
-        if ( input[0] == 'X' || input[1] == 'x' ) goto finish;
+        if ( input[0] == 'X' || input[0] == 'x' ) return;
 
         cards.push_back( { string_to_rank( input ), string_to_suit( input ) } );
     }
@@ -280,21 +280,15 @@ void game() {
         cout << " 2 3 4 5 6 7 8 9 D J Q K A ( to start new simulation X ) \n\n";
         cout << " Community card >> "; cin >> input;
 
-        if ( input[0] == 'X' || input[1] == 'x' ) goto finish;
+        if ( input[0] == 'X' || input[0] == 'x' ) return;
 
         cards.push_back( { string_to_rank( input ), string_to_suit( input ) } );
         simulate( cards, 10000 );
         cout << "\n <-----> \n";
     }
 
-    // omg it is so controversial (it is faster tho)
-    // i tried at least to make it cleaner :P
-
-    finish: {
-        cout << " Press any key to start new simulation.\n";
-        cin.ignore();
-        cin.get();
-    }
+    cin.ignore();
+    cin.get();
 }
 
 int main() {
