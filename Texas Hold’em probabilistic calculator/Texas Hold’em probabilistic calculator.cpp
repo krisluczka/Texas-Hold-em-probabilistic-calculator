@@ -213,8 +213,8 @@ static inline rank_type string_to_rank( const string& card ) {
         case '7': return SEVEN;
         case '8': return EIGHT;
         case '9': return NINE;
-        case 'D': return TEN;
-        case 'd': return TEN;
+        case 'T': return TEN;
+        case 't': return TEN;
         case 'J': return JACK;
         case 'j': return JACK;
         case 'Q': return QUEEN;
@@ -249,8 +249,9 @@ void game() {
 
     // two starting cards
     cout << "\n <-----> \n";
-    cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n";
-    cout << " 2 3 4 5 6 7 8 9 D J Q K A ( to start new simulation X ) \n\n";
+    cout << " To start new simulation type X \n\n";
+    cout << " 2 3 4 5 6 7 8 9 T J Q K A \n";
+    cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n\n";
     for ( uint_fast8_t i( 0 ); i < 2; ++i ) {
         cout << " Hole card >> "; cin >> input;
 
@@ -262,8 +263,9 @@ void game() {
     cout << "\n <-----> \n";
 
     // three community cards
-    cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n";
-    cout << " 2 3 4 5 6 7 8 9 D J Q K A ( to start new simulation X ) \n\n";
+    cout << " To start new simulation type X \n\n";
+    cout << " 2 3 4 5 6 7 8 9 T J Q K A \n";
+    cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n\n";
     for ( uint_fast8_t i( 0 ); i < 3; ++i ) {
         cout << " Community card >> "; cin >> input;
 
@@ -276,8 +278,9 @@ void game() {
 
     // two community cards
     for ( uint_fast8_t i( 0 ); i < 2; ++i ) {
-        cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n";
-        cout << " 2 3 4 5 6 7 8 9 D J Q K A ( to start new simulation X ) \n\n";
+        cout << " To start new simulation type X \n\n";
+        cout << " 2 3 4 5 6 7 8 9 T J Q K A \n";
+        cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n\n";
         cout << " Community card >> "; cin >> input;
 
         if ( input[0] == 'X' || input[0] == 'x' ) return;
