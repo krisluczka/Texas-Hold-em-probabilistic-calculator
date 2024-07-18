@@ -143,9 +143,9 @@ uint_fast8_t best_hand( const vector<card>& cards ) {
     return rankings.front().type;
 }
 
-void simulate( const vector<card>& cards, uint_fast64_t amount ) {
+void simulate( const vector<card>& deck, const vector<card>& cards, uint_fast64_t amount ) {
     random_device dev;
-    uniform_int_distribution<int> random_card( 0, 51 );
+    uniform_int_distribution<int> random_card( 0, 2147483647 );
     uint_fast8_t random( 0 );
     uint_fast8_t best( 0 );
 
@@ -154,12 +154,6 @@ void simulate( const vector<card>& cards, uint_fast64_t amount ) {
     wins.reserve( 9 );
     for ( uint_fast8_t i( 0 ); i < 9; ++i )
         wins.push_back( item( 0, i ) );
-
-    // initializing main deck
-    vector<card> deck;
-    for ( uint_fast8_t suit(SPADES); suit <= CLUBS; ++suit )
-        for ( uint_fast8_t rank(TWO); rank <= ACE; ++rank )
-            deck.push_back( card{ static_cast<rank_type>(rank), static_cast<suit_type>(suit) } );
 
     for ( uint_fast64_t i( 0 ); i < amount; ++i ) {
         // copying deck
@@ -241,64 +235,88 @@ static inline suit_type string_to_suit( const string& card ) {
     return SPADES;
 }
 
-void game() {
+void game( bool custom = false ) {
     cls();
     string input;
-    vector<card> cards;
-    cards.reserve( 7 );
+    // initializing main deck
+    vector<card> deck;
+    if ( custom ) {
+        cout << "\n Type cards to insert into a deck\n\n";
+        cout << " 2 3 4 5 6 7 8 9 T J Q K A \n";
+        cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n";
+        cout << " To finish the deck type X \n\n";
 
-    // two starting cards
-    cout << "\n <-----> \n";
-    cout << " To start new simulation type X \n\n";
-    cout << " 2 3 4 5 6 7 8 9 T J Q K A \n";
-    cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n\n";
-    for ( uint_fast8_t i( 0 ); i < 2; ++i ) {
-        cout << " Hole card >> "; cin >> input;
-
-        if ( input[0] == 'X' || input[0] == 'x' ) return;
-
-        cards.push_back( { string_to_rank( input ), string_to_suit( input ) } );
+        do {
+            cout << " >> ";
+            cin >> input;
+            deck.push_back( { string_to_rank( input ), string_to_suit( input ) } );
+        } while ( input[0] != 'X' && input[0] != 'x' );
+    } else {
+        for ( uint_fast8_t suit( SPADES ); suit <= CLUBS; ++suit )
+            for ( uint_fast8_t rank( TWO ); rank <= ACE; ++rank )
+                deck.push_back( card{ static_cast<rank_type>(rank), static_cast<suit_type>(suit) } );
     }
-    simulate( cards, 10000 );
-    cout << "\n <-----> \n";
 
-    // three community cards
-    cout << " To start new simulation type X \n\n";
-    cout << " 2 3 4 5 6 7 8 9 T J Q K A \n";
-    cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n\n";
-    for ( uint_fast8_t i( 0 ); i < 3; ++i ) {
-        cout << " Community card >> "; cin >> input;
 
-        if ( input[0] == 'X' || input[0] == 'x' ) return;
+    while ( true ) {
+        cls();
+        vector<card> cards;
+        cards.reserve( 7 );
 
-        cards.push_back( { string_to_rank( input ), string_to_suit( input ) } );
-    }
-    simulate( cards, 10000 );
-    cout << "\n <-----> \n";
-
-    // two community cards
-    for ( uint_fast8_t i( 0 ); i < 2; ++i ) {
+        // two starting cards
+        cout << "\n <-----> \n";
         cout << " To start new simulation type X \n\n";
         cout << " 2 3 4 5 6 7 8 9 T J Q K A \n";
         cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n\n";
-        cout << " Community card >> "; cin >> input;
+        for ( uint_fast8_t i( 0 ); i < 2; ++i ) {
+            cout << " Hole card >> "; cin >> input;
 
-        if ( input[0] == 'X' || input[0] == 'x' ) return;
+            if ( input[0] == 'X' || input[0] == 'x' ) return;
 
-        cards.push_back( { string_to_rank( input ), string_to_suit( input ) } );
-        simulate( cards, 10000 );
+            cards.push_back( { string_to_rank( input ), string_to_suit( input ) } );
+        }
+        simulate( deck, cards, 10000 );
         cout << "\n <-----> \n";
-    }
 
-    cin.ignore();
-    cin.get();
+        // three community cards
+        cout << " To start new simulation type X \n\n";
+        cout << " 2 3 4 5 6 7 8 9 T J Q K A \n";
+        cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n\n";
+        for ( uint_fast8_t i( 0 ); i < 3; ++i ) {
+            cout << " Community card >> "; cin >> input;
+
+            if ( input[0] == 'X' || input[0] == 'x' ) return;
+
+            cards.push_back( { string_to_rank( input ), string_to_suit( input ) } );
+        }
+        simulate( deck, cards, 10000 );
+        cout << "\n <-----> \n";
+
+        // two community cards
+        for ( uint_fast8_t i( 0 ); i < 2; ++i ) {
+            cout << " To start new simulation type X \n\n";
+            cout << " 2 3 4 5 6 7 8 9 T J Q K A \n";
+            cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n\n";
+            cout << " Community card >> "; cin >> input;
+
+            if ( input[0] == 'X' || input[0] == 'x' ) return;
+
+            cards.push_back( { string_to_rank( input ), string_to_suit( input ) } );
+            simulate( deck, cards, 10000 );
+            cout << "\n <-----> \n";
+        }
+
+        cin.ignore();
+        cin.get();
+    }
 }
 
 int main() {
+    string input;
     cout << " /--------------------------------------\\ \n";
     cout << " |                                      |\n";
     cout << " |   Texas Hold'em probabilistic        |\n";
-    cout << " |               calculator version 1   |\n";
+    cout << " |               calculator version 2   |\n";
     cout << " |                                      |\n";
     cout << " |                by Krzysztof Luczka   |\n";
     cout << " |                                      |\n";
@@ -310,8 +328,16 @@ int main() {
         << " thousands of games to reveal the actual\n"
         << " chances of getting a given hand.\n\n\n";
 
-    sleep( 3000 );
+    //sleep( 3000 );
+    cout << " 1. Standard deck\n";
+    cout << " 2. Custom deck\n\n";
+    cout << " >> "; cin >> input;
 
-    while ( 1 )
-        game();
+    if ( input == "2" )
+        game( true );
+    else
+        game( false );
+
+
+    
 }
