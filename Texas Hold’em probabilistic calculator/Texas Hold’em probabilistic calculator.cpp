@@ -4,6 +4,8 @@
 #include <map>
 #include <set>
 #include <random>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
@@ -31,6 +33,28 @@ struct hand {
         return type < other.type;
     }
 };
+
+struct item {
+    uint_fast64_t amount;
+    uint_fast8_t hand;
+
+    item() : amount( 0 ), hand( 0 ) {}
+    item( uint_fast64_t a, uint_fast8_t h ) : amount( a ), hand( h ) {}
+};
+
+const string hand_name[] = { "High Card", "One Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush" };
+
+static inline void cls() {
+#if defined(_WIN32) || defined(_WIN64)
+    system( "cls" );
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__unix__) || defined(__sun)
+    system( "clear" );
+#endif
+}
+
+void sleep( uint_fast64_t milliseconds ) {
+    std::this_thread::sleep_for( std::chrono::milliseconds( milliseconds ) );
+}
 
 static inline bool is_straight( const vector<rank_type>& ranks ) {
     for ( uint_fast8_t i( 0 ); i < ranks.size() - 1; ++i )
@@ -122,23 +146,25 @@ uint_fast8_t best_hand( const vector<card>& cards ) {
 void simulate( const vector<card>& cards, uint_fast64_t amount ) {
     random_device dev;
     uniform_int_distribution<int> random_card( 0, 51 );
-    uint_fast8_t random;
-    uint_fast8_t best;
+    uint_fast8_t random( 0 );
+    uint_fast8_t best( 0 );
+
+    // setup
+    vector<item> wins;
+    wins.reserve( 9 );
+    for ( uint_fast8_t i( 0 ); i < 9; ++i )
+        wins.push_back( item( 0, i ) );
 
     // initializing main deck
     vector<card> deck;
     for ( uint_fast8_t suit(SPADES); suit <= CLUBS; ++suit )
         for ( uint_fast8_t rank(TWO); rank <= ACE; ++rank )
             deck.push_back( card{ static_cast<rank_type>(rank), static_cast<suit_type>(suit) } );
-    
-    vector<uint_fast64_t> wins;
-    wins.resize( 9, 0 );
-    uint_fast8_t number( cards.size() );
 
     for ( uint_fast64_t i( 0 ); i < amount; ++i ) {
         // copying deck
-        vector<card> current_deck = deck;
-        vector<card> current_cards = cards;
+        vector<card> current_deck( deck );
+        vector<card> current_cards( cards );
         
         // removing the cards from current decks
         current_deck.erase( std::remove_if( current_deck.begin(), current_deck.end(),
@@ -162,20 +188,133 @@ void simulate( const vector<card>& cards, uint_fast64_t amount ) {
         best = best_hand( current_cards );
 
         // incrementing the wins
-        ++wins[best];
+        ++wins[best].amount;
     }
 
+    // descending sort
+    sort( wins.begin(), wins.end(), []( const item& a, const item& b ) {
+        return a.amount > b.amount;
+    });
+
     // results
-    cout << " Chances of a given set >> \n";
+    cout << "\n Chances of a given set >> \n";
     for ( uint_fast8_t i( 0 ); i < 9; ++i ) {
-        cout << int( i + 1 ) << ". " << float( wins[i] ) / float( amount ) * 100 << " % \n";
+        cout << "     " << int(9 - wins[i].hand) << ". " << hand_name[wins[i].hand] << " - " << float(wins[i].amount) / float(amount) * 100 << " % \n";
+    }
+}
+
+static inline rank_type string_to_rank( const string& card ) {
+    switch ( card[0] ) {
+        case '2': return TWO;
+        case '3': return THREE;
+        case '4': return FOUR;
+        case '5': return FIVE;
+        case '6': return SIX;
+        case '7': return SEVEN;
+        case '8': return EIGHT;
+        case '9': return NINE;
+        case 'D': return TEN;
+        case 'd': return TEN;
+        case 'J': return JACK;
+        case 'j': return JACK;
+        case 'Q': return QUEEN;
+        case 'q': return QUEEN;
+        case 'K': return KING;
+        case 'k': return KING;
+        case 'A': return ACE;
+        case 'a': return ACE;
+    }
+    return TWO;
+}
+
+static inline suit_type string_to_suit( const string& card ) {
+    switch ( card[1] ) {
+        case 'S': return SPADES;
+        case 's': return SPADES;
+        case 'C': return CLUBS;
+        case 'c': return CLUBS;
+        case 'D': return DIAMONDS;
+        case 'd': return DIAMONDS;
+        case 'H': return HEARTS;
+        case 'h': return HEARTS;
+    }
+    return SPADES;
+}
+
+void game() {
+    cls();
+    string input;
+    vector<card> cards;
+    cards.reserve( 7 );
+
+    // two starting cards
+    cout << "\n <-----> \n";
+    cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n";
+    cout << " 2 3 4 5 6 7 8 9 D J Q K A ( to start new simulation X ) \n\n";
+    for ( uint_fast8_t i( 0 ); i < 2; ++i ) {
+        cout << " Hole card >> "; cin >> input;
+
+        if ( input[0] == 'X' || input[1] == 'x' ) goto finish;
+
+        cards.push_back( { string_to_rank( input ), string_to_suit( input ) } );
+    }
+    simulate( cards, 10000 );
+    cout << "\n <-----> \n";
+
+    // three community cards
+    cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n";
+    cout << " 2 3 4 5 6 7 8 9 D J Q K A ( to start new simulation X ) \n\n";
+    for ( uint_fast8_t i( 0 ); i < 3; ++i ) {
+        cout << " Community card >> "; cin >> input;
+
+        if ( input[0] == 'X' || input[1] == 'x' ) goto finish;
+
+        cards.push_back( { string_to_rank( input ), string_to_suit( input ) } );
+    }
+    simulate( cards, 10000 );
+    cout << "\n <-----> \n";
+
+    // two community cards
+    for ( uint_fast8_t i( 0 ); i < 2; ++i ) {
+        cout << " S (spades)   C (clubs)   D (diamonds)   H (hearts) \n";
+        cout << " 2 3 4 5 6 7 8 9 D J Q K A ( to start new simulation X ) \n\n";
+        cout << " Community card >> "; cin >> input;
+
+        if ( input[0] == 'X' || input[1] == 'x' ) goto finish;
+
+        cards.push_back( { string_to_rank( input ), string_to_suit( input ) } );
+        simulate( cards, 10000 );
+        cout << "\n <-----> \n";
+    }
+
+    // omg it is so controversial (it is faster tho)
+    // i tried at least to make it cleaner :P
+
+    finish: {
+        cout << " Press any key to start new simulation.\n";
+        cin.ignore();
+        cin.get();
     }
 }
 
 int main() {
-    vector<card> cards = {
-        {TWO, SPADES}, {ACE,HEARTS},
-    };
+    cout << " /--------------------------------------\\ \n";
+    cout << " |                                      |\n";
+    cout << " |   Texas Hold'em probabilistic        |\n";
+    cout << " |               calculator version 1   |\n";
+    cout << " |                                      |\n";
+    cout << " |                by Krzysztof Luczka   |\n";
+    cout << " |                                      |\n";
+    cout << " \\--------------------------------------/ \n\n";
 
-    simulate( cards, 10000 );
+    cout << "     Type every card that was in the game \n"
+        << " (first player's, then the drawn ones). \n"
+        << " The calculator will then simulate through \n"
+        << " thousands of games to reveal the actual\n"
+        << " chances of getting a given hand.\n\n\n";
+
+    sleep( 3000 );
+
+    while ( 1 )
+        game();
 }
